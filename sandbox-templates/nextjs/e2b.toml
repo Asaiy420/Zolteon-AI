@@ -1,0 +1,17 @@
+# This is a config for E2B sandbox template.
+# You can use template ID (7hf8pzc801selibs08px) or template name (zolteon-nextjs-asai-123) to create a sandbox:
+
+# Python SDK
+# from e2b import Sandbox, AsyncSandbox
+# sandbox = Sandbox("zolteon-nextjs-asai-123") # Sync sandbox
+# sandbox = await AsyncSandbox.create("zolteon-nextjs-asai-123") # Async sandbox
+
+# JS SDK
+# import { Sandbox } from 'e2b'
+# const sandbox = await Sandbox.create('zolteon-nextjs-asai-123')
+
+team_id = "8bd945c0-7b1f-4030-9ebf-a073afa1d0ae"
+start_cmd = "/compile_page.sh"
+dockerfile = "e2b.Dockerfile"
+template_name = "zolteon-nextjs-asai-123"
+template_id = "7hf8pzc801selibs08px"
