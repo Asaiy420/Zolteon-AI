@@ -12,7 +12,7 @@ export const helloWorld = inngest.createFunction(
       const sandbox = await Sandbox.create("zolteon-nextjs-asai-123");
       return sandbox.sandboxId;
     });
-
+    // add a code agent with a proper prompt
     const codeAgent = createAgent({
       name: "code-agent",
       system:
