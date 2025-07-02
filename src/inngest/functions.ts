@@ -2,8 +2,9 @@ import { Sandbox } from "@e2b/code-interpreter";
 import { gemini, createAgent, createTool } from "@inngest/agent-kit";
 
 import { inngest } from "./client";
-import { getSandbox } from "./utils";
+import { getSandbox, lastAssitantTextMessageContent } from "./utils";
 import { z } from "zod";
+import { PROMPT } from "@/prompt";
 
 export const helloWorld = inngest.createFunction(
   { id: "hello-world" },
@@ -16,8 +17,9 @@ export const helloWorld = inngest.createFunction(
     // add a code agent with a proper prompt
     const codeAgent = createAgent({
       name: "code-agent",
-      system:
-        "You are an expert next.js developer.You write readable, maintainable code. You write simple Next.js & React code use proper styling as well",
+      description:
+        "An exprot coding  agent that can write and run code in a sandbox environment.",
+      system: PROMPT,
       model: gemini({ model: "gemini-1.5-flash" }),
       tools: [
         createTool({
@@ -97,7 +99,7 @@ export const helloWorld = inngest.createFunction(
           }),
           handler: async ({ files }, { step }) => {
             return await step?.run("readFiles", async () => {
-              try {
+              try { 
                 const sandbox = await getSandbox(sandboxId);
                 const contents = [];
                 for (const file of files) {
@@ -113,6 +115,19 @@ export const helloWorld = inngest.createFunction(
           },
         }),
       ],
+      lifecycle: {
+        onResponse: async ({ result, network }) => {
+          const lastAssistantMessageText =
+            lastAssitantTextMessageContent(result);
+
+          if (lastAssistantMessageText && network) {
+            if (lastAssistantMessageText.includes("<task_summary>")) {
+              network.state.data.summary = lastAssistantMessageText;
+            }
+          }
+          return result;
+        },
+      },
     });
     const { output } = await codeAgent.run(
       `Write the  code for the given input: ${event.data.value}`
