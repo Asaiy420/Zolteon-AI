@@ -1,5 +1,10 @@
 import { Sandbox } from "@e2b/code-interpreter";
-import { gemini, createAgent, createTool } from "@inngest/agent-kit";
+import {
+  gemini,
+  createAgent,
+  createTool,
+  createNetwork,
+} from "@inngest/agent-kit";
 
 import { inngest } from "./client";
 import { getSandbox, lastAssitantTextMessageContent } from "./utils";
@@ -20,7 +25,7 @@ export const helloWorld = inngest.createFunction(
       description:
         "An exprot coding  agent that can write and run code in a sandbox environment.",
       system: PROMPT,
-      model: gemini({ model: "gemini-1.5-flash" }),
+      model: gemini({ model: "gemini-2.0-flash" }),
       tools: [
         createTool({
           name: "terminal",
@@ -99,7 +104,7 @@ export const helloWorld = inngest.createFunction(
           }),
           handler: async ({ files }, { step }) => {
             return await step?.run("readFiles", async () => {
-              try { 
+              try {
                 const sandbox = await getSandbox(sandboxId);
                 const contents = [];
                 for (const file of files) {
@@ -129,9 +134,22 @@ export const helloWorld = inngest.createFunction(
         },
       },
     });
-    const { output } = await codeAgent.run(
-      `Write the  code for the given input: ${event.data.value}`
-    );
+
+    const network = createNetwork({
+      name: "coding-agent-network",
+      agents: [codeAgent],
+      maxIter: 15,
+      router: async ({ network }) => {
+        const summary = network.state.data.summary;
+
+        if (summary) {
+          return;
+        }
+        return codeAgent;
+      },
+    });
+
+    const result = await network.run(event.data.value); // run the network with the event data
 
     const sandboxUrl = await step.run("get-sandbox-url", async () => {
       const sandbox = await getSandbox(sandboxId);
@@ -139,6 +157,11 @@ export const helloWorld = inngest.createFunction(
       return `http://${host}`;
     });
 
-    return { output, sandboxUrl };
+    return { 
+      url: sandboxUrl,
+      title: "Fragment",
+      files: result.state.data.files,
+      summary: result.state.data.summary,
+    };
   }
 );
