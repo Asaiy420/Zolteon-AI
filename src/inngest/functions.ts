@@ -4,6 +4,7 @@ import {
   createAgent,
   createTool,
   createNetwork,
+  type Tool,
 } from "@inngest/agent-kit";
 
 import { inngest } from "./client";
@@ -12,7 +13,12 @@ import { z } from "zod";
 import { PROMPT } from "@/prompt";
 import prisma from "@/lib/db";
 
-export const codeAgent = inngest.createFunction(
+interface AgentState {
+  summary: string;
+  files: { [path: string]: string };
+}
+
+export const codeAgentFunction = inngest.createFunction(
   { id: "code-agent" },
   { event: "code-agent/run" },
   async ({ event, step }) => {
@@ -21,7 +27,7 @@ export const codeAgent = inngest.createFunction(
       return sandbox.sandboxId;
     });
     // add a code agent with a proper prompt
-    const codeAgent = createAgent({
+    const codeAgent = createAgent<AgentState>({
       name: "code-agent",
       description:
         "An exprot coding  agent that can write and run code in a sandbox environment.",
@@ -71,7 +77,7 @@ export const codeAgent = inngest.createFunction(
               })
             ),
           }),
-          handler: async ({ files }, { step, network }) => {
+          handler: async ({ files }, { step, network }: Tool.Options<AgentState>) => {
             const newFiles = await step?.run(
               "createOrUpdateFiles",
               async () => {
@@ -136,7 +142,7 @@ export const codeAgent = inngest.createFunction(
       },
     });
 
-    const network = createNetwork({
+    const network = createNetwork<AgentState>({
       name: "coding-agent-network",
       agents: [codeAgent],
       maxIter: 15,
@@ -152,6 +158,10 @@ export const codeAgent = inngest.createFunction(
 
     const result = await network.run(event.data.value); // run the network with the event data
 
+    const isError =
+      !result.state.data.summary ||
+      Object.keys(result.state.data.files || {}).length === 0;
+
     const sandboxUrl = await step.run("get-sandbox-url", async () => {
       const sandbox = await getSandbox(sandboxId);
       const host = sandbox.getHost(3000);
@@ -159,6 +169,17 @@ export const codeAgent = inngest.createFunction(
     });
 
     await step.run("save-result", async () => {
+      if (isError) {
+        return await prisma.message.create({
+          data: {
+            content:
+              "An error occurred while processing your request. Please try again.",
+            role: "ASSISTANT",
+            type: "ERROR",
+          },
+        });
+      }
+
       return await prisma.message.create({
         data: {
           content: result.state.data.summary,
