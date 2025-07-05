@@ -32,7 +32,7 @@ export const codeAgentFunction = inngest.createFunction(
       description:
         "An exprot coding  agent that can write and run code in a sandbox environment.",
       system: PROMPT,
-      model: gemini({ model: "gemini-2.0-flash-lite" }),
+      model: gemini({ model: "gemini-2.0-flash" }),
       tools: [
         createTool({
           name: "terminal",
