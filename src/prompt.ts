@@ -93,6 +93,84 @@ File conventions:
 - Components should be using named exports
 - When using Shadcn components, import them from their proper individual file paths (e.g. @/components/ui/input)
 
+Component/File Import Safety Rules:
+- Before importing any component or file, ALWAYS verify that the file exists using the file system tools (e.g., readFiles, file_search).
+- If a required file or component does not exist, you MUST create it before importing.
+- Use the correct relative path and file extension when importing components (e.g., import Footer from "./components/footer"; should only be used if "components/footer.tsx" or "components/footer/index.tsx" exists).
+- NEVER assume a file or component exists—always check first.
+- If you encounter a "Module not found" or similar error, immediately check for the existence of the referenced file and create it if missing.
+- When splitting code into multiple files, ensure all imports use the correct, existing paths and that all referenced files are created as part of the task.
+- Always use the file system tools to confirm the presence of files before referencing them in code.
+- When creating new components, always use named exports and ensure the export matches the import name exactly (case-sensitive).
+- Always match the import path and file name exactly, including case, as file systems may be case-sensitive.
+- When moving or renaming files, update all relevant imports throughout the codebase to prevent broken references.
+- Avoid circular dependencies between files or components.
+- When creating index.ts or index.tsx files for directories, ensure they export all necessary components or utilities for that directory.
+- Always check for duplicate component or file names in the same directory to avoid conflicts.
+- When using default exports, ensure only one default export per file and that the import uses the correct default import syntax.
+- Always check for typos in file names, import paths, and export statements.
+- When importing from third-party libraries, ensure the package is installed and the import path matches the library's documentation.
+- Use TypeScript for all files and ensure type definitions are correct and consistent across imports/exports.
+- When using dynamic imports, ensure the path is correct and the file exists at runtime.
+- Always run type checks and linting after making changes to catch potential import/export or file reference errors early.
+
+CRITICAL WORKFLOW - MANDATORY BEFORE ANY IMPORTS:
+1. BEFORE writing any import statement, you MUST:
+   - Use file_search to check if the component/file exists
+   - Use readFiles to verify the exact export structure of existing files
+   - If the file doesn't exist, CREATE IT FIRST before importing
+   - NEVER write imports for non-existent files
+
+2. For every import statement you write, follow this checklist:
+   - [ ] File exists (verified with file_search)
+   - [ ] Export name matches import name exactly
+   - [ ] File path is correct (relative or absolute)
+   - [ ] File extension is correct (.tsx, .ts, .js, .jsx)
+   - [ ] No typos in file name or path
+   - [ ] Component is actually exported from the file
+
+3. When creating new components:
+   - Create the file FIRST
+   - Add proper exports (named or default)
+   - THEN write the import statement
+   - Test the import by reading the file again
+
+4. Common error prevention:
+   - NEVER import from "@/components/mode-toggle" unless you've verified it exists
+   - NEVER import from "./components/footer" unless you've created it
+   - ALWAYS use file_search before any import
+   - If you see "Module not found", STOP and check file existence first
+
+5. File creation priority:
+   - Create all required files BEFORE writing any import statements
+   - Use createOrUpdateFiles to create missing components
+   - Verify file creation was successful before proceeding
+   - Only after all files exist, write the import statements
+
+NEXT.JS SPECIFIC IMPORT RULES:
+- The @/ alias ONLY works for imports, NOT for file system operations
+- When using file_search or readFiles, convert @/ paths to actual paths:
+  - @/components/ui/button → /home/user/components/ui/button.tsx
+  - @/lib/utils → /home/user/lib/utils.ts
+- Common Next.js import patterns that often cause errors:
+  - ❌ import { ModeToggle } from "@/components/mode-toggle" (if file doesn't exist)
+  - ❌ import Footer from "./components/footer" (if file doesn't exist)
+  - ✅ import { Button } from "@/components/ui/button" (pre-installed)
+  - ✅ import { cn } from "@/lib/utils" (pre-installed)
+- Before importing any custom component, ALWAYS check if it exists
+- If you need a ModeToggle component, create it at /home/user/components/mode-toggle.tsx first
+- If you need a Footer component, create it at /home/user/app/components/footer.tsx first
+- NEVER assume any custom component exists - only Shadcn UI components are pre-installed
+
+ERROR RECOVERY PROCEDURE:
+If you encounter "Module not found" errors:
+1. STOP all coding immediately
+2. Use file_search to check if the file exists
+3. If it doesn't exist, create it using createOrUpdateFiles
+4. If it does exist, check the export structure with readFiles
+5. Fix the import statement to match the actual export
+6. Only continue after the error is resolved
+
 Final output (MANDATORY):
 After ALL tool calls are 100% complete and the task is fully finished, respond with exactly the following format and NOTHING else:
 
