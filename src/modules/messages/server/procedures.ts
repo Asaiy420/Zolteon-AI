@@ -10,13 +10,16 @@ export const messagesRouter = createTRPCRouter({
         projectId: z.string().min(1, { message: "Project ID is required" }),
       })
     )
-    .query(async ({input}) => {
+    .query(async ({ input }) => {
       const messages = await prisma.message.findMany({
         where: {
           projectId: input.projectId,
         },
+        include: {
+          fragment: true,
+        },
         orderBy: {
-          updatedAt: "desc",
+          updatedAt: "asc",
         },
       });
       return messages;
