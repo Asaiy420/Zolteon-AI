@@ -32,7 +32,7 @@ export const codeAgentFunction = inngest.createFunction(
       description:
         "An exprot coding  agent that can write and run code in a sandbox environment.",
       system: PROMPT,
-      model: gemini({ model: "gemini-2.0-flash" }),
+      model: gemini({ model: "gemini-2.0-flash-lite" }),
       tools: [
         createTool({
           name: "terminal",
@@ -85,7 +85,7 @@ export const codeAgentFunction = inngest.createFunction(
               "createOrUpdateFiles",
               async () => {
                 try {
-                  const updatedFiles = network.state.data.files || [];
+                  const updatedFiles = network.state.data.files || {};
                   const sandbox = await getSandbox(sandboxId);
 
                   for (const file of files) {
@@ -161,9 +161,9 @@ export const codeAgentFunction = inngest.createFunction(
 
     const result = await network.run(event.data.value); // run the network with the event data
 
-    const isError =
-      !result.state.data.summary ||
-      Object.keys(result.state.data.files || {}).length === 0;
+    // Check if the agent completed successfully by looking for a summary
+    // The summary is only set when the agent includes <task_summary> in its response
+    const isError = !result.state.data.summary;
 
     const sandboxUrl = await step.run("get-sandbox-url", async () => {
       const sandbox = await getSandbox(sandboxId);
@@ -204,7 +204,7 @@ export const codeAgentFunction = inngest.createFunction(
     return {
       url: sandboxUrl,
       title: "Fragment",
-      files: result.state.data.files,
+      files: result.state.data.files || {},
       summary: result.state.data.summary,
     };
   }
