@@ -23,11 +23,8 @@ function getQueryClient() {
   return browserQueryClient;
 }
 function getUrl() {
-  const base = (() => {
-    if (typeof window !== "undefined") return "";
-    return process.env.NEXT_PUBLIC_APP_URL;
-  })();
-  return `${base}/api/trpc`;
+  // Use a relative URL that works in both server and client environments
+  return "/api/trpc";
 }
 export function TRPCReactProvider(
   props: Readonly<{
@@ -43,7 +40,7 @@ export function TRPCReactProvider(
     createTRPCClient<AppRouter>({
       links: [
         httpBatchLink({
-          transformer: superjson, 
+          transformer: superjson,
           url: getUrl(),
         }),
       ],
