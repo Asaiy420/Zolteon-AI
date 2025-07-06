@@ -1,6 +1,5 @@
 "use client";
 
-
 import {
   ResizableHandle,
   ResizablePanel,
@@ -14,15 +13,13 @@ interface Props {
 }
 
 export const ProjectView = ({ projectId }: Props) => {
-
-
   return (
-    <div className="h-screen ">
+    <div className="h-screen flex flex-col">
       <ResizablePanelGroup direction="horizontal">
         <ResizablePanel
           defaultSize={35}
           minSize={20}
-          className="flex flex-col min-h-0"
+          className="flex flex-col h-full min-h-0"
         >
           <Suspense fallback={<p>Loading messages...</p>}>
             <MessagesContainer projectId={projectId} />
