@@ -43,7 +43,7 @@ export const MessageForm = ({ projectId }: Props) => {
         // TODO: Invalidate usage status
       },
       onError: (error) => {
-        // TODO: Redirect to pricing page if specific error
+        // TODO: Redirect to pricing page if specific errorb
         toast.error(error.message);
       },
     })
