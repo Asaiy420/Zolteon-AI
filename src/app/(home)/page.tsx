@@ -1,4 +1,5 @@
 import { ProjectForm } from "@/modules/home/ui/components/project-form";
+import { PorjectsList } from "@/modules/home/ui/components/projects-list";
 import Image from "next/image";
 
 const Page = () => {
@@ -21,9 +22,10 @@ const Page = () => {
           Create apps and websites by just writing a simple prompt.
         </p>
         <div className="max-w-3xl mx-auto w-full pt-15">
-          <ProjectForm/> 
+          <ProjectForm/>  
         </div>
       </section>
+      <PorjectsList/>
     </div>
   );
 };
