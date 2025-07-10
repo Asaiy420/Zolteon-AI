@@ -14,6 +14,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { ProjectTemplates } from "../../constants";
+import { useClerk } from "@clerk/nextjs";
 
 const formSchema = z.object({
   value: z.string().min(1, { message: "Prompt is required" }).max(10000, {
@@ -25,6 +26,7 @@ export const ProjectForm = () => {
   const router = useRouter();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const clerk = useClerk();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -40,8 +42,12 @@ export const ProjectForm = () => {
         // TODO: Invalidate usage status
       },
       onError: (error) => {
-        // TODO: Redirect to pricing page if specific errorb
         toast.error(error.message);
+        if (error.data?.code === "UNAUTHORIZED") {
+          clerk.openSignIn();
+        }
+
+        // TODO: Redirect to pricing page if specific errorb
       },
     })
   );
@@ -51,13 +57,13 @@ export const ProjectForm = () => {
     });
   };
 
-  const onSelect= (value: string) => {
+  const onSelect = (value: string) => {
     form.setValue("value", value, {
-        shouldDirty: true,
-        shouldTouch: true,
-        shouldValidate: true,
-    })
-  }
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true,
+    });
+  };
 
   const [isFocused, setIsFocused] = useState(false);
   const isPending = createProject.isPending;
